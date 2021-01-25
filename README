@@ -1,0 +1,10 @@
+Project's home: https://www.hexstreamsoft.com/libraries/enhanced-defclass/
+
+
+enhanced-defclass provides a truly extensible version of DEFCLASS
+that can accurately control the expansion according to the metaclass
+and automatically detect the suitable metaclass by analyzing the DEFCLASS form.
+
+
+This library is in the Public Domain.
+See the UNLICENSE file for details.
