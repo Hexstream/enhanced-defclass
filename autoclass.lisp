@@ -12,7 +12,8 @@
    (%class-options :initarg :class-options
                    :reader enhanced-defclass:class-options
                    :type list
-                   :initform nil)))
+                   :initform nil))
+  (:metaclass compatible-metaclasses:standard-metaclass))
 
 (defmethod simple-guess:inquire ((manager enhanced-defclass:metaclass-manager) (class enhanced-defclass:standard-autoclass)
                                  &rest initargs &key direct-superclasses direct-slots

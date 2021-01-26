@@ -25,7 +25,7 @@
                      name home-package current-package)))
           current-package))))
 
-(defun %guess-metaclass (raw-initargs &optional (preferences (shared-prefs:preferences (load-time-value *package*))))
+(defun %guess-metaclass (raw-initargs &optional (preferences (shared-prefs:preferences *package*)))
   (let ((manager (enhanced-defclass:default-metaclass-manager preferences))
         (advisor (enhanced-defclass:default-metaclass-advisor preferences)))
     (apply #'simple-guess:inquire manager advisor raw-initargs)))
