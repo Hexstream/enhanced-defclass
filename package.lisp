@@ -12,6 +12,8 @@
            #:standard-autoclass
            #:slot-options
            #:class-options
+           #:compute-slot-options
+           #:compute-class-options
 
            #:canonicalize-initargs
            #:make-initargs-canonicalizer

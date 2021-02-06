@@ -5,15 +5,28 @@
   (:metaclass compatible-metaclasses:standard-metaclass))
 
 (cl:defclass enhanced-defclass:standard-autoclass (enhanced-defclass:autoclass)
-  ((%slot-options :initarg :slot-options
-                  :reader enhanced-defclass:slot-options
-                  :type list
-                  :initform nil)
-   (%class-options :initarg :class-options
-                   :reader enhanced-defclass:class-options
-                   :type list
-                   :initform nil))
+  ((%slot-options :reader enhanced-defclass:slot-options
+                  :type list)
+   (%class-options :reader enhanced-defclass:class-options
+                   :type list))
   (:metaclass compatible-metaclasses:standard-metaclass))
+
+(defgeneric enhanced-defclass:compute-slot-options (class-prototype)
+  (:method-combination nconc)
+  (:method nconc ((class-prototype cl:class))
+    nil))
+
+(defgeneric enhanced-defclass:compute-class-options (class-prototype)
+  (:method-combination nconc)
+  (:method nconc ((class-prototype cl:class))
+    nil))
+
+(defmethod c2mop:finalize-inheritance :after ((class enhanced-defclass:standard-autoclass))
+  (let ((prototype (c2mop:class-prototype class)))
+    (setf (slot-value class '%slot-options)
+          (enhanced-defclass:compute-slot-options prototype)
+          (slot-value class '%class-options)
+          (enhanced-defclass:compute-class-options prototype))))
 
 (defmethod simple-guess:inquire ((manager enhanced-defclass:metaclass-manager) (class enhanced-defclass:standard-autoclass)
                                  &rest initargs &key direct-superclasses direct-slots
