@@ -49,7 +49,7 @@
                                 (some (lambda (superclass)
                                         (unless (gethash superclass visited-superclasses)
                                           (setf (gethash superclass visited-superclasses) t)
-                                          (or (eq superclass class)
+                                          (or (typep superclass class)
                                               (recurse (c2mop:class-direct-superclasses superclass)))))
                                       superclasses)))
                        (recurse (mapcan (lambda (superclass-name)
