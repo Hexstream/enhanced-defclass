@@ -21,4 +21,4 @@
            #:make-slot-initargs-canonicalizer
 
            #:defclass
-           #:strip-defclass))
+           #:passthroughp))

@@ -14,7 +14,7 @@
                "enhanced-eval-when"
                "enhanced-find-class")
 
-  :version "1.1"
+  :version "2.0"
   :serial cl:t
   :components ((:file "package")
                (:file "preferences")
