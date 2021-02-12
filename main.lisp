@@ -22,6 +22,21 @@
                 default-metaclass)
             maybe-raw-initargs)))
 
+(defun %generate-compile-time-defclass (metaclass name direct-superclasses direct-slots)
+  (list* 'cl:defclass name direct-superclasses
+         (mapcar (lambda (slot)
+                   (cons (car slot) (%mappcon (lambda (key value)
+                                                (when (member key '(:initarg :initform :type
+                                                                    :reader :writer :accessor
+                                                                    :allocation :documentation)
+                                                              :test #'eq)
+                                                  (list key value)))
+                                              (cdr slot))))
+                 direct-slots)
+         (unless (eq metaclass (load-time-value (find-class 'c2mop:standard-class)))
+           (list `(:metaclass ,(class-name metaclass))))))
+
+
 (defmacro enhanced-defclass:defclass (&whole whole name direct-superclasses direct-slots &rest options &environment env)
   (etypecase (first options)
     (cons `(cl:defclass ,@(cdr whole))) ; Heavyweight options.
@@ -34,10 +49,7 @@
              `(cl:defclass ,@(cdr whole)) ; No options meant heavyweight options, so passthrough.
              `(progn
                 (evaled-when:evaled-when (:compile-toplevel)
-                  (cl:defclass ,name ,direct-superclasses
-                    ()
-                    ,@(unless (eq metaclass (load-time-value (find-class 'c2mop:standard-class)))
-                        (list `(:metaclass ,(class-name metaclass))))))
+                  ,(%generate-compile-time-defclass metaclass name direct-superclasses direct-slots))
                 (c2mop:ensure-class ',name
                                     :metaclass ',metaclass
                                     ,@(apply #'enhanced-defclass:canonicalize-initargs
