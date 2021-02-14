@@ -28,6 +28,19 @@
           (slot-value class '%class-options)
           (enhanced-defclass:compute-class-options prototype))))
 
+(defvar *%autoclass-name-to-prototype* (make-hash-table :test 'eq))
+
+(defun %%declare-class-metaclass (class-name metaclass-name)
+  (unless (find-class class-name nil)
+    (let ((metaclass (find-class metaclass-name)))
+      (when (typep metaclass 'enhanced-defclass:standard-autoclass)
+        (setf (gethash class-name *%autoclass-name-to-prototype*)
+              (c2mop:class-prototype (c2mop:ensure-finalized metaclass)))))))
+
+(defmacro %declare-class-metaclass (class-name metaclass-name)
+  `(eval-when (:compile-toplevel)
+     (%%declare-class-metaclass ',class-name ',metaclass-name)))
+
 (defmethod simple-guess:inquire ((manager enhanced-defclass:metaclass-manager) (class enhanced-defclass:standard-autoclass)
                                  &rest initargs &key direct-superclasses direct-slots
                                                   (metaclass-strategy '(:slot-options :class-options :superclasses)))
@@ -52,10 +65,16 @@
                                           (or (typep superclass class)
                                               (recurse (c2mop:class-direct-superclasses superclass)))))
                                       superclasses)))
-                       (recurse (mapcan (lambda (superclass-name)
-                                          (let ((superclass (find-class superclass-name nil)))
-                                            (when superclass
-                                              (list superclass))))
-                                        direct-superclasses)))))))
+                       (block nil
+                         (let ((autoclass-name-to-prototype *%autoclass-name-to-prototype*))
+                           (recurse (mapcan (lambda (superclass-name)
+                                              (let ((superclass (find-class superclass-name nil)))
+                                                (if superclass
+                                                    (list superclass)
+                                                    (let ((prototype (gethash superclass-name
+                                                                              autoclass-name-to-prototype)))
+                                                      (when (typep prototype class)
+                                                        (return t))))))
+                                            direct-superclasses)))))))))
               metaclass-strategy)
     class))
