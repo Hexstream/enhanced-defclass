@@ -48,7 +48,8 @@
                   (enhanced-defclass:passthroughp metaclass-prototype name direct-superclasses direct-slots env))
              `(cl:defclass ,@(cdr whole)) ; No options meant heavyweight options, so passthrough.
              `(progn
-                (%declare-class-metaclass ,name ,(class-name metaclass))
+                ,@(when (enhanced-defclass:check-superclasses-p metaclass)
+                    (list `(%declare-class-metaclass ,name ,(class-name metaclass))))
                 (evaled-when:evaled-when (:compile-toplevel)
                   ,(%generate-compile-time-defclass metaclass name direct-superclasses direct-slots))
                 (c2mop:ensure-class ',name

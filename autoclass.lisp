@@ -4,11 +4,18 @@
   ()
   (:metaclass compatible-metaclasses:standard-metaclass))
 
+(defgeneric enhanced-defclass:check-superclasses-p (class)
+  (:method ((class cl:class))
+    nil))
+
 (cl:defclass enhanced-defclass:standard-autoclass (enhanced-defclass:autoclass)
   ((%slot-options :reader enhanced-defclass:slot-options
                   :type list)
    (%class-options :reader enhanced-defclass:class-options
-                   :type list))
+                   :type list)
+   (%check-superclasses-p :reader enhanced-defclass:check-superclasses-p
+                          :type boolean
+                          :initform nil))
   (:metaclass compatible-metaclasses:standard-metaclass))
 
 (defgeneric enhanced-defclass:compute-slot-options (class-prototype)
@@ -57,24 +64,25 @@
                      (and class-options
                           (get-properties initargs class-options))))
                   (:superclasses
-                   (let ((visited-superclasses (make-hash-table :test 'eq)))
-                     (labels ((recurse (superclasses)
-                                (some (lambda (superclass)
-                                        (unless (gethash superclass visited-superclasses)
-                                          (setf (gethash superclass visited-superclasses) t)
-                                          (or (typep superclass class)
-                                              (recurse (c2mop:class-direct-superclasses superclass)))))
-                                      superclasses)))
-                       (block nil
-                         (let ((autoclass-name-to-prototype *%autoclass-name-to-prototype*))
-                           (recurse (mapcan (lambda (superclass-name)
-                                              (let ((superclass (find-class superclass-name nil)))
-                                                (if superclass
-                                                    (list superclass)
-                                                    (let ((prototype (gethash superclass-name
-                                                                              autoclass-name-to-prototype)))
-                                                      (when (typep prototype class)
-                                                        (return t))))))
-                                            direct-superclasses)))))))))
+                   (when (enhanced-defclass:check-superclasses-p class)
+                     (let ((visited-superclasses (make-hash-table :test 'eq)))
+                       (labels ((recurse (superclasses)
+                                  (some (lambda (superclass)
+                                          (unless (gethash superclass visited-superclasses)
+                                            (setf (gethash superclass visited-superclasses) t)
+                                            (or (typep superclass class)
+                                                (recurse (c2mop:class-direct-superclasses superclass)))))
+                                        superclasses)))
+                         (block nil
+                           (let ((autoclass-name-to-prototype *%autoclass-name-to-prototype*))
+                             (recurse (mapcan (lambda (superclass-name)
+                                                (let ((superclass (find-class superclass-name nil)))
+                                                  (if superclass
+                                                      (list superclass)
+                                                      (let ((prototype (gethash superclass-name
+                                                                                autoclass-name-to-prototype)))
+                                                        (when (typep prototype class)
+                                                          (return t))))))
+                                              direct-superclasses))))))))))
               metaclass-strategy)
     class))

@@ -12,6 +12,7 @@
            #:standard-autoclass
            #:slot-options
            #:class-options
+           #:check-superclasses-p
            #:compute-slot-options
            #:compute-class-options
 
